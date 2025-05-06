@@ -111,6 +111,7 @@ def one_hot_encoding(df, column_name):
 
     return df
 
+# Visualize the correlation matrix
 def cor_matrix(df):
     # Compute the correlation matrix
     correlation_matrix = df.corr()
