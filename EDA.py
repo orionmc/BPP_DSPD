@@ -2,9 +2,6 @@
 import warnings
 warnings.filterwarnings('ignore')
 import sys
-#from IPython.display import display
-
-
 
 import numpy as np 
 import pandas as pd 
@@ -22,6 +19,10 @@ from sklearn.pipeline import Pipeline
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.pipeline import Pipeline as imbPipeline
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 # Set format
 pd.options.display.float_format = "{:.4f}".format
@@ -85,14 +86,14 @@ def analyse_data(df, target_col):
 
 
 
-    # Split the data into features and target
-    X = df.drop(columns=[target_col])
-    y = df[target_col]
+    # # Split the data into features and target
+    # X = df.drop(columns=[target_col])
+    # y = df[target_col]
     
-    # Split the data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    # # Split the data into training and testing sets
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
     
-    return X_train, X_test, y_train, y_test
+    return #X_train, X_test, y_train, y_test
 
 # Simplify the smoking history categories
 def smoking_categories(smoking_status):
@@ -117,7 +118,7 @@ def cor_matrix(df):
     correlation_matrix = df.corr()
     
     plt.figure(figsize=(15, 10))
-    sns.heatmap(correlation_matrix, annot=True, linewidths=0.5, fmt=".4f")
+    sns.heatmap(correlation_matrix, annot=True, cmap="PiYG", linewidths=0.5, fmt=".4f")
     plt.title("Correlation Matrix Heatmap")
     plt.show()
 
@@ -136,3 +137,58 @@ def cor_matrix(df):
     plt.show()
 
     return
+# Visualize the graphics
+# 1 - diabetes variable
+def graphics(df):
+    
+    # 1- 'diabetes' - variable
+    sns.countplot(x='diabetes', data=df)
+    plt.title('Diabetes Yes/No')
+    plt.show()
+
+    return
+
+def LogReg(df, X_train, X_test, y_train, y_test, target_col='diabetes'):
+    
+    # Drop rows with missing values
+    df = df.dropna()
+
+    # Define categorical and numeric features
+    categorical_features = ['gender', 'smoking_history']
+    numeric_features = [col for col in X_train.columns if col not in categorical_features]
+
+    # Preprocessor: scale numeric, one-hot encode categorical
+    preprocessor = ColumnTransformer(transformers=[
+        ('num', StandardScaler(), numeric_features),
+        ('cat', OneHotEncoder(drop='first'), categorical_features)
+    ])
+
+    # Define pipeline
+    pipeline = Pipeline([
+        ('preprocessor', preprocessor),
+        ('classifier', LogisticRegression(max_iter=1000, solver='liblinear'))
+    ])
+
+    # Define hyperparameter grid
+    param_grid = {
+        'classifier__C': [0.01, 0.1, 1, 10],
+        'classifier__penalty': ['l1', 'l2'],
+        'classifier__solver': ['liblinear']
+    }
+
+    # Grid search
+    grid_search = GridSearchCV(pipeline, param_grid, cv=5, scoring='accuracy', n_jobs=-1)
+    grid_search.fit(X_train, y_train)
+
+    # Best model
+    best_model = grid_search.best_estimator_
+    y_pred = best_model.predict(X_test)
+
+    # Evaluation
+    print("===== Logistic Regression Evaluation =====")
+    print("Best Parameters:", grid_search.best_params_)
+    print("Accuracy:", accuracy_score(y_test, y_pred))
+    print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+    print("Classification Report:\n", classification_report(y_test, y_pred))
+    
+    return best_model
