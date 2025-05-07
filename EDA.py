@@ -29,9 +29,6 @@ pd.options.display.float_format = "{:.4f}".format
 
 
 def analyse_data(df, target_col):
-
-    print("000000000000000000TEST")
-
     # Check for null/missing values
     print("\n\nNumer of null values in each column:")
     print(df.isnull().sum())
@@ -77,23 +74,8 @@ def analyse_data(df, target_col):
     # Smoking history
     sns.countplot(x='smoking_history', data=df, palette="Set2")
     plt.title('Smoking History')
-    plt.show()
-
-    # # Pair plot for feature relationships
-    # print("\n\nPair plot for feature relationships:")
-    # sns.pairplot(df, hue='diabetes', diag_kind='kde', palette="Set2")
-    # plt.show()
-
-
-
-    # # Split the data into features and target
-    # X = df.drop(columns=[target_col])
-    # y = df[target_col]
-    
-    # # Split the data into training and testing sets
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
-    
-    return #X_train, X_test, y_train, y_test
+    plt.show()    
+    return
 
 # Simplify the smoking history categories
 def smoking_categories(smoking_status):
@@ -187,8 +169,8 @@ def LogReg(df, X_train, X_test, y_train, y_test, target_col='diabetes'):
     # Evaluation
     print("===== Logistic Regression Evaluation =====")
     print("Best Parameters:", grid_search.best_params_)
+    print("Confusion Matrix LR:\n", confusion_matrix(y_test, y_pred))
     print("Accuracy:", accuracy_score(y_test, y_pred))
-    print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
-    print("Classification Report:\n", classification_report(y_test, y_pred))
+    print("Classification Report LR:\n", classification_report(y_test, y_pred))
     
     return best_model
